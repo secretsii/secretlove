@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>scrath me</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .controls {
+            display: none !important;
+        }
+
+
+        body {
+            min-height: 100vh;
+            background: url('images/bg.jpeg') no-repeat center center;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .slider {
+            overflow: hidden;
+            width: 100%;
+            touch-action: pan-y;
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.3s ease;
+        }
+
+        .slide {
+            width: 100%;
+            flex-shrink: 0;
+            border-radius: 10px;
+        }
+
+        .player-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-container button {
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        .app-container {
+    max-width: 1300px;
+    width: 100%;
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 2rem;
+    padding: 1rem;
+}
+
+        h1 {
+            text-align: center;
+            font-weight: 500;
+            letter-spacing: 1px;
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub {
+            text-align: center;
+            color: #dbbf94;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px dashed #c6a27a;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: rgba(0,0,0,0.3);
+            padding: 0.8rem 1.5rem;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+        }
+
+        .progress-badge {
+            background: #2f201b;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            color: #ffefdb;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: inset 0 0 2px #ab8e64, 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .progress-badge span {
+            color: #f7c59f;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        button {
+            background: #c1956b;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #2c1c16;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            box-shadow: 0 5px 0 #6e3e2a;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #6e3e2a;
+        }
+
+        .music-toggle {
+            background: #7a5a46;
+            color: #ffefe0;
+            box-shadow: 0 5px 0 #4d3527;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .scratch-card {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            background: #f3e5cf;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: none;
+            width: 100%;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .base-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover !important;
+            background-position: center !important;
+            background-repeat: no-repeat !important;
+            border-radius: 10px;
+            z-index: 1;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            cursor: grab;
+            touch-action: none;
+            z-index: 10;
+        }
+
+        .scratch-canvas:active {
+            cursor: grabbing;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.115);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-card {
+            background: transparent;
+            max-width: 420px;
+            width: 100%;
+            border-radius: 20px;
+            padding: 0;
+            text-align: center;
+            box-shadow: none;
+            border: none;
+            position: relative;
+        }
+
+        /* Tombol close di pojok kiri atas */
+        .modal-close-btn {
+    position: absolute;
+    top: 40px;
+    left: 0;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255, 255, 255, 0.85);
+    color: black;
+    border: none;
+
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+
+    box-shadow: none;
+}
+
+        .modal-close-btn:hover {
+            background: rgb(255, 255, 255);
+            transform: scale(1.05);
+        }
+
+        .modal-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-card h3 {
+            font-size: 1.7rem;
+            color: #b45f3b;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-card .modal-img {
+            width: 100%;
+            border-radius: 20px;
+            margin: 1rem 0;
+            max-height: 250px;
+            object-fit: cover;
+        }
+
+        .modal-card p {
+            color: #4f2d1c;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.7rem;
+            color: #b98f70;
+            padding-bottom: 0.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .modal-card {
+                max-width: 100%;
+                border-radius: 0;
+            }
+            .night-drive-player {
+                max-width: 100%;
+                border-radius: 0;
+            }
+            .modal-close-btn {
+                top: -35px;
+                left: 5px;
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .app-container {
+                padding: 1rem;
+            }
+            .cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.8rem;
+            }
+            .controls {
+                justify-content: center;
+            }
+        }
+
+        
+
+/* Perbaikan CSS untuk gallery slider - Foto Lebih Penuh */
+.gallery-slider {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.gallery-slider {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.gallery-slider-container {
+    overflow: hidden;
+    border-radius: 12px;
+    position: relative;
+}
+
+.gallery-slides {
+    display: flex;
+    transition: transform 0.4s ease;
+    cursor: grab;
+}
+
+.gallery-slides:active {
+    cursor: grabbing;
+}
+
+/* Hanya perbaikan ini yang ditambahkan */
+.gallery-slide {
+    flex-shrink: 0;
+    width: 100%;
+    padding: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.gallery-slide img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.gallery-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.85);
+    color: #6976cf;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 0;
+    cursor: pointer;
+    font-size: 20px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.gallery-btn:hover {
+    background: rgba(255,255,255,0.95);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.gallery-btn.prev {
+    left: 15px;
+}
+
+.gallery-btn.next {
+    right: 15px;
+}
+
+.gallery-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.gallery-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4000ff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gallery-dot.active {
+    background: #4000ff;
+    width: 24px;
+    border-radius: 10px;
+}
+
+/* Perbaikan modal card untuk HP */
+.modal-card {
+    background: transparent;
+    max-width: 500px;
+    width: 95%;
+    border-radius: 20px;
+    padding: 0;
+    text-align: center;
+    box-shadow: none;
+    border: none;
+}
+
+.modal-card.gallery-mode {
+    width: 92%;
+    max-width: 400px;
+    padding: 0.4rem;
+    border-radius: 1px;
+}
+
+
+/* Perbaikan modal card agar tidak terlalu lebar */
+.modal-card {
+    background: transparent;
+    max-width: 400px;
+    width: 90%;
+    border-radius: 20px;
+    padding: 0;
+    text-align: center;
+    box-shadow: none;
+    border: none;
+}
+
+.modal-card.gallery-mode {
+    background: rgb(255, 255, 255);
+    padding: 1rem;
+    border-radius: 8px;
+    backdrop-filter: blur(0px);
+}
+
+@media (max-width: 600px) {
+    .modal-card {
+        max-width: 95%;
+        width: 95%;
+    }
+    
+    .gallery-slider {
+        max-width: 280px;
+    }
+    
+    .gallery-slide img {
+        max-height: 240px;
+    }
+}
+
+        /* ========== MUSIC PLAYER STYLE ========== */
+        .night-drive-player {
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 16px;
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+        .player-artwork {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 35px rgba(255, 255, 255, 0);
+        }
+
+        .player-artwork img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-artwork-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 15px;
+            text-align: left;
+        }
+
+        .player-artwork-overlay h4 {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .player-artwork-overlay p {
+            color: #d4af7a;
+            font-size: 0.7rem;
+        }
+
+        .playlist-section {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+        }
+
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #d4af7a;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .playlist-songs {
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .playlist-song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .playlist-song-item:hover {
+            background: rgba(212, 175, 122, 0.15);
+        }
+
+        .playlist-song-item.active {
+            background: rgba(212, 175, 122, 0.25);
+        }
+
+        .song-info {
+            text-align: left;
+        }
+
+        .song-title {
+            font-weight: 600;
+            color: rgb(0, 0, 0);
+            font-size: 0.9rem;
+        }
+
+        .song-artist {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .song-duration {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .playlist-songs::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .playlist-songs::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        .playlist-songs::-webkit-scrollbar-thumb {
+            background: #d4af7a;
+            border-radius: 2px;
+        }
+
+        /* ========== EXACT NOTEPAD STYLE FROM IMAGE ========== */
+        .notepad-exact {
+            background: #fffef7;
+            padding: 1.8rem 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: left;
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            border-radius: 2px;
+        }
+
+        .notepad-line {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #2c2c2c;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .notepad-line::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ========== BLOG POST STYLE ========== */
+        .blog-container {
+            background: #fafaf9;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.06);
+        }
+
+        .preview-image {
+            height: 120px;
+            margin: 20px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .branding {
+            padding: 0 24px 10px 24px;
+        }
+
+        .publication-label {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #9c8a7a;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .main-title {
+            font-size: 1.9rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #9a8a7a;
+        }
+
+        .post-content {
+            padding: 20px 24px 26px 24px;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .post-body {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .post-text {
+            flex: 1;
+        }
+
+        .post-image {
+            width: 90px;
+            height: 90px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+        }
+
+        .author-name {
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+            color: #7a6a5a;
+        }
+
+        .post-date {
+            font-size: 0.75rem;
+            color: #b8a890;
+        }
+
+        .post-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e1e1e;
+            margin-bottom: 10px;
+        }
+
+        .post-description {
+            font-size: 0.85rem;
+            color: #5a4a3a;
+            line-height: 1.4;
+        }
+
+        /* ========== AESTHETIC PROFILE CARD STYLE ========== */
+        .aesthetic-profile {
+            background: #fefaf5;
+            border-radius: 8px;
+            padding: 24px 22px;
+            max-width: 400px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.02);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .username {
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            color: #3b2c24;
+            background: #f2ebe2;
+            padding: 3px 10px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+
+        .home-icon {
+            font-size: 1.2rem;
+            color: #c2aa8b;
+            background: #f2ede7;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            cursor: default;
+        }
+
+        .profile-gallery-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            justify-content: center;
+        }
+
+        .profile-gallery-thumb {
+            flex: 1;
+            aspect-ratio: 1 / 1;
+            background-color: #e5dbd0;
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #f0e7dd;
+        }
+
+        .caption-note {
+    color: #8f7a66;
+    margin-bottom: 18px;
+    padding-left: 6px;
+    display: flex;
+    align-items: flex-start; /* ⬅️ ubah dari center */
+    gap: 6px;
+    text-align: left; /* ⬅️ wajib */
+}
+
+        .caption-note::before {
+            content: "•";
+            font-size: 1.2rem;
+            color: #c2aa8b;
+        }
+
+        .profile-pill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .profile-pill-tag {
+            background: transparent;
+            border: 1px solid #e2d6ca;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 450;
+            color: #6f5e4e;
+            letter-spacing: 0.2px;
+            cursor: default;
+        }
+
+        .profile-stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #efe5db;
+            padding-top: 16px;
+            margin-bottom: 12px;
+        }
+
+        .notes-count {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #4f3f32;
+        }
+
+        .profile-action-icons {
+            display: flex;
+            gap: 20px;
+            color: #b6a086;
+            font-size: 1.1rem;
+        }
+
+        .profile-action-icons span {
+            cursor: default;
+            font-size: 1rem;
+        }
+
+        .carrd-credit {
+            text-align: center;
+            font-size: 0.65rem;
+            color: #cbbcaa;
+            margin-top: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        /* ========== CHAT INTERACTIVE STYLE - MODIFIED ========== */
+        .chat-container {
+            background: linear-gradient(145deg, #ffffff 0%, #ffffff 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            max-width: 400px;
+            margin: 0 auto;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+        }
+
+        .chat-header, .chat-footer {
+            background: #ffffff;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header {
+            border-bottom: none;
+        }
+
+        .chat-footer {
+            border-top: 1px solid rgba(0,0,0,0.1);
+            font-size: 0.7rem;
+            color: #000000;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #7aaab8;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid white;
+        }
+
+        .chat-site-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #000000;
+            letter-spacing: 0.3px;
+        }
+
+        .datetime-with-bg {
+    background-image: url('images/chat-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    width: 100%;
+    height: 220px;
+
+    margin: 0;
+    padding: 0; /* 🔥 ini penting */
+
+    border-radius: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.top-line {
+    width: 100%;
+    height: 1px;
+    background: rgba(0,0,0,0.15);
+}
+
+
+.inside-notif-content {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    text-align: center;
+    padding: 0 20px; /* 🔥 pindahin ke sini */
+}
+
+.inside-notif-content .notification-text {
+    color: white;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+    text-shadow: none;
+}
+
+.inside-notif-content .notification-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+        
+        .datetime-with-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 0px;
+            pointer-events: none;
+        }
+        
+        .date-large, .time-large {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-shadow: none;
+        }
+
+        .date-large {
+    margin-top: 40px; /* geser ke bawah */
+}
+
+.time-large {
+    margin-top: 5px;
+}
+
+
+        .notification-area {
+            padding: 0px;
+            text-align: center;
+        }
+
+        .date-time {
+            margin-bottom: 15px;
+        }
+
+        .date-large {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+
+        .time-large {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 5px;
+        }
+
+        .notification-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 24px 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            margin: 15px 0;
+        }
+
+        .notification-text {
+            font-size: 0.95rem;
+            color: #6b4a58;
+            margin-bottom: 20px;
+        }
+
+        .notification-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .notif-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 8px 28px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .notif-btn.accept {
+            background: #ffffff5c;
+            color: #000000;
+        }
+
+        .notif-btn.reject {
+            background: #ffffff5c;
+            color: #000000;
+        }
+
+        .notif-btn:active {
+            transform: scale(0.96);
+        }
+
+        .chat-messages-area {
+    padding: 16px;
+    max-height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: stretch; /* INI PENTING */
+}
+
+
+        .chat-messages-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        .system-message {
+            text-align: flex;
+            font-size: 0.65rem;
+            color: #4d4d4d;
+            margin: 8px 0;
+        }
+
+        .message-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-row.left {
+    justify-content: flex-start;
+}
+
+.message-row.right {
+    justify-content: flex-end;
+}
+
+
+        .message-bubble {
+    max-width: 75%;
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #4a2e3a;
+    text-align: left; /* INI YANG FIX */
+}
+
+
+
+        .message-row.left .message-bubble {
+            background: #eef7ff;
+            border-bottom-left-radius: 4px;
+            text-align: left;
+        }
+
+        .message-row.right .message-bubble {
+            background: #ffd9e3;
+            border-bottom-right-radius: 4px;
+            text-align: right;
+        }
+
+        .chat-avatar-small {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #fcccd7;
+            background-size: cover;
+            flex-shrink: 0;
+        }
+
+        .leave-link {
+            color: #4d4d4d;
+            text-decoration: underline;
+            cursor: default;
+        }
+
+        .return-home {
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #4d4d4d;
+        }
+
+        .footer-credit {
+            font-size: 0.65rem;
+            color: #4d4d4d;
+        }
+
+
+        /* ========== INSTAGRAM POST STYLE UNTUK GALLERY CARD 1 ========== */
+        .instagram-post {
+            background: #ffffff;
+            max-width: 380px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0);
+        }
+
+        .instagram-liked,
+.instagram-caption,
+.instagram-comments,
+.instagram-timestamp {
+    text-align: left;
+}
+
+        .instagram-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 10px 12px 8px;
+}
+
+        .instagram-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 0px;
+}
+
+        .instagram-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-image: url('images/avatar.jpg');
+        }
+
+        .instagram-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    line-height: 1.5;
+}
+
+        .instagram-username {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #262626;
+        }
+
+        .instagram-location {
+            font-size: 0.7rem;
+            color: #8e8e8e;
+        }
+
+        .instagram-more {
+            font-size: 1.2rem;
+            color: #262626;
+            cursor: default;
+        }
+
+        .instagram-image-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #fafafa;
+            overflow: hidden;
+        }
+
+        .instagram-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .instagram-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+        }
+
+        .instagram-actions-left {
+            display: flex;
+            gap: 18px;
+        }
+
+        .instagram-action-icon {
+            font-size: 1.5rem;
+            cursor: default;
+        }
+
+        .instagram-liked {
+                padding-left: 0;   /* lurus sama foto */
+    padding-right: 12px;
+    margin-top: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 8px;
+        }
+
+        .instagram-caption {
+                padding-left: 0;   /* lurus sama foto */
+    padding-right: 12px;
+    margin-top: 6px;
+            font-size: 0.85rem;
+            color: #262626;
+        }
+
+        .instagram-caption-username {
+            adding-left: 0;  
+            padding-right: 0px;
+            font-weight: 700;
+            margin-right: 6px;
+        }
+
+        .instagram-comments {
+            adding-left: 0;   /* lurus sama foto */
+    padding-right: 12px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+            font-size: 0.8rem;
+            color: #8e8e8e;
+        }
+
+        .instagram-timestamp {
+            adding-left: 0;   /* lurus sama foto */
+    padding-right: 12px;
+            font-size: 0.7rem;
+            color: #8e8e8e;
+        }
+
+        /* Slider untuk Instagram post gallery */
+        .instagram-slider {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+        }
+
+        .instagram-slides {
+            display: flex;
+            transition: transform 0.4s ease;
+            height: 100%;
+        }
+
+        .instagram-slide {
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .instagram-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+       .instagram-slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 26px;
+    height: 26px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(255,255,255,0.9);
+    color: #262626;
+    border: none;
+
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+        .instagram-slider-btn.prev {
+            left: 12px;
+        }
+
+        .instagram-slider-btn.next {
+            right: 12px;
+        }
+
+        .instagram-slider-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+        }
+
+        .instagram-slider-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+}
+
+        .instagram-slider-dot.active {
+    background: #ffffff;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+    </style>
+</head>
+<body>
+<div class="app-container">
+    
+
+    <div class="controls">
+        <div class="progress-badge">
+            ✨ <span id="revealCount">0</span> / <span id="totalCards">6</span> kartu terbuka
+        </div>
+        <div>
+            <button id="resetAllBtn">🔄 Reset Semua Kartu</button>
+            <button id="toggleMusicBtn" class="music-toggle">🎵 Putar Musik</button>
+        </div>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+    
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-card">
+        
+        <div id="modalDynamicContent"></div>
+    </div>
+</div>
+
+<script>
+    (function(){
+
+        const cardsData = [
+            {
+                hiddenImg: "images/scratch1.jpg",
+                type: "gallery",
+                modalTitle: "our story",
+                images: ["images/pic1.jpg", "images/pic2.jpg", "images/pic3.jpg", "images/pic4.jpg", "images/pic5.jpg"]
+            },
+            {
+                hiddenImg: "images/scratch2.jpg",
+                type: "music_player",
+                artwork: "images/scratch22.jpg",
+                songTitle: "Love Song",
+                artist: "⋆𐙚₊˚⊹♡",
+                songs: [
+                    { title: "Take my half", artist: "Beomgyu", duration: "3:45", url: "https://open.spotify.com/track/6cx5CvFhqN19efStehJqoW?si=gFdSdcqRQiKETF3RR1ExUg", cover: "images/music1.jpg" },
+                    { title: "One call away", artist: "Charlie Puth", duration: "2:59", url: "https://open.spotify.com/track/2eAvDnpXP5W0cVtiI0PUxV?si=b6sGcEhcRwWer3ddr7WPvg", cover: "images/music2.jpg" },
+                    { title: "blue", artist: "Yung Kai", duration: "3:37", url: "https://open.spotify.com/track/68HocO7fx9z0MgDU0ZPHro?si=q8Xin39PQR6zCxPAmJBJlQ", cover: "images/music3.jpg" },
+                    { title: "They don't know about us", artist: "One Direction ", duration: "3:08", url: "https://open.spotify.com/track/5XeFesFbtLpXzIVDNQP22n?si=SLhGGPmPTrCx52SBDqtAhw", cover: "images/music4.jpg" },
+                    { title: "Give me your forever", artist: "Zack tabudlo", duration: "3:52", url: "https://open.spotify.com/track/0tgVpDi06FyKpA1z0VMD4v?si=DQh1yw5FRHK90c_rKfvzIA", cover: "images/music5.jpg" }
+                ]
+            },
+            {
+                hiddenImg: "images/scratch3.jpg",
+                type: "letter",
+                letterTitle: "For you",
+                letterContent: "Dear, Cempa\n\ni hope you realize every little “eat properly,” “sleep well,” “have a nice day,” or “sweet dreams” from me is just another way of saying i love you… like, i love you so much it’s lowkey rewriting the meaning of everything i say. just stay with me for a long, long time, cause i really want you in my life, like forever.",
+                letterDate: "May 15, 2026"
+            },
+            {
+                hiddenImg: "images/scratch4.jpg",
+                type: "blog_post",
+                previewText: "always, almost art <3",
+                publication: "love looks a lot like us.",
+                mainTitle: "I LOVE YOU",
+                subtitle: "my heart belongs to you",
+                previewImage: "images/4_atas.jpg",
+                author: { name: "Barga", avatar: "images/avatar.jpg" },
+                postTitle: "Dear, Cempa",
+                postDesc: "no matter how far you are, you’re still living in my head rent free. like everything somehow traces back to you, what i see, what i hear, even the smallest, most random moments… it’s always you at the end of it.",
+                postDate: "May, 15",
+                photos: ["images/kanan.jpg"]
+            },
+            {
+                hiddenImg: "images/scratch5.jpg",
+                type: "profile_card",
+                username: "Barga",
+                galleryImages: ["images/pics1.jpg", "images/pics2.jpg", "images/pics3.jpg"],
+                captionText: "the ocean’s loud but you’re still the only thing i hear.",
+                tags: ["beach", "barga's", "mensive", "today"],
+                notesCount: "13 Notes",
+                carrdCredit: "Made With Love"
+            },
+            {
+                hiddenImg: "images/scratch6.jpg",
+                type: "chat_interactive",
+                username: "Barga",
+                avatar: "images/avatar.jpg"
+            }
+        ];
+
+        let cards = [];
+        let revealedCount = 0;
+        let bgMusic = null;
+        let musicPlaying = false;
+        const totalCards = cardsData.length;
+        document.getElementById('totalCards').innerText = totalCards;
+
+        function updateProgress() {
+            document.getElementById('revealCount').innerText = revealedCount;
+            if (revealedCount === totalCards) {
+               
+            }
+        }
+
+        function forceFullReveal(cardObj) {
+            if(cardObj.revealed) return;
+            cardObj.revealed = true;
+            const ctx = cardObj.ctx;
+            const w = cardObj.canvas.width;
+            const h = cardObj.canvas.height;
+            ctx.globalCompositeOperation = "destination-out";
+            ctx.fillRect(0, 0, w, h);
+            ctx.clearRect(0, 0, w, h);
+            cardObj.canvas.style.display = 'none';
+            revealedCount++;
+            updateProgress();
+        }
+
+        function getScratchPercentage(cardObj) {
+            if(cardObj.revealed) return 100;
+            const canvas = cardObj.canvas;
+            const ctx = cardObj.ctx;
+            const w = canvas.width, h = canvas.height;
+            if(w === 0 || h === 0) return 0;
+            try {
+                const pixels = ctx.getImageData(0, 0, w, h);
+                const data = pixels.data;
+                let transparentPixels = 0;
+                for (let i = 3; i < data.length; i += 4) if (data[i] === 0) transparentPixels++;
+                return (transparentPixels / (w * h)) * 100;
+            } catch(e) { return 0; }
+        }
+
+        function initScratchCard(cardObj) {
+            const canvas = cardObj.canvas;
+            const ctx = cardObj.ctx;
+            const rect = canvas.getBoundingClientRect();
+            let w = rect.width, h = rect.height;
+            if (w === 0 || h === 0) { setTimeout(() => initScratchCard(cardObj), 100); return; }
+            canvas.width = w; canvas.height = h;
+            canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+            canvas.style.display = 'block';
+            ctx.globalCompositeOperation = "source-over";
+            const gradient = ctx.createLinearGradient(0, 0, w, h);
+            gradient.addColorStop(0, '#bdbdbd');
+            gradient.addColorStop(1, '#8d8d8d');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+            cardObj.brushSize = Math.max(30, Math.min(w, h) * 0.1);
+            cardObj.drawing = false;
+            function getCoords(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if(e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
+                else { clientX = e.clientX; clientY = e.clientY; }
+                let x = (clientX - rect.left) * scaleX, y = (clientY - rect.top) * scaleY;
+                x = Math.min(Math.max(0, x), canvas.width);
+                y = Math.min(Math.max(0, y), canvas.height);
+                return { x, y };
+            }
+            function drawDot(x, y) {
+                if(cardObj.revealed) return;
+                ctx.globalCompositeOperation = "destination-out";
+                ctx.beginPath();
+                ctx.arc(x, y, cardObj.brushSize, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalCompositeOperation = "source-over";
+                if (getScratchPercentage(cardObj) >= 99.5 && !cardObj.revealed) forceFullReveal(cardObj);
+            }
+            function drawLine(x1, y1, x2, y2) {
+                const distance = Math.hypot(x2 - x1, y2 - y1);
+                const steps = Math.max(Math.ceil(distance / (cardObj.brushSize / 2)), 1);
+                for(let i = 0; i <= steps; i++) {
+                    const t = i / steps;
+                    drawDot(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t);
+                }
+            }
+            function startDraw(e) { if(cardObj.revealed) return; e.preventDefault(); const coord = getCoords(e); cardObj.drawing = true; drawDot(coord.x, coord.y); cardObj.lastCoord = coord; }
+            function onDraw(e) { if(!cardObj.drawing || cardObj.revealed) return; e.preventDefault(); const coord = getCoords(e); if(cardObj.lastCoord) drawLine(cardObj.lastCoord.x, cardObj.lastCoord.y, coord.x, coord.y); cardObj.lastCoord = coord; }
+            function endDraw() { cardObj.drawing = false; cardObj.lastCoord = null; }
+            canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', onDraw);
+            canvas.addEventListener('mouseup', endDraw); canvas.addEventListener('mouseleave', endDraw);
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', onDraw, { passive: false });
+            canvas.addEventListener('touchend', endDraw); canvas.addEventListener('touchcancel', endDraw);
+        }
+
+        // INSTAGRAM STYLE GALLERY untuk card 1
+        function createInstagramGallery(images) {
+            let currentIndex = 0;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'instagram-post';
+            
+            // Header Instagram
+            const header = document.createElement('div');
+            header.className = 'instagram-header';
+            header.innerHTML = `
+                <div class="instagram-user">
+                    <div class="instagram-avatar"></div>
+                    <div class="instagram-user-info">
+                        <span class="instagram-username">barga</span>
+                        <span class="instagram-location">TXT - Stick With You</span>
+                    </div>
+                </div>
+                <div class="instagram-more">•••</div>
+            `;
+            wrapper.appendChild(header);
+            
+            // Image Slider
+            const sliderContainer = document.createElement('div');
+            sliderContainer.className = 'instagram-slider';
+            
+            const slidesDiv = document.createElement('div');
+            slidesDiv.className = 'instagram-slides';
+            
+            images.forEach(img => {
+                const slide = document.createElement('div');
+                slide.className = 'instagram-slide';
+                const imgEl = document.createElement('img');
+                imgEl.src = img;
+                slide.appendChild(imgEl);
+                slidesDiv.appendChild(slide);
+            });
+            sliderContainer.appendChild(slidesDiv);
+            
+            // Tombol prev/next
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'instagram-slider-btn prev';
+            prevBtn.innerHTML = '❮';
+            prevBtn.onclick = () => {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateSlider();
+                }
+            };
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'instagram-slider-btn next';
+            nextBtn.innerHTML = '❯';
+            nextBtn.onclick = () => {
+                if (currentIndex < images.length - 1) {
+                    currentIndex++;
+                    updateSlider();
+                }
+            };
+            
+            sliderContainer.appendChild(prevBtn);
+            sliderContainer.appendChild(nextBtn);
+            
+            // Dots indicator
+            const dotsDiv = document.createElement('div');
+            dotsDiv.className = 'instagram-slider-dots';
+            const dots = [];
+            images.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'instagram-slider-dot';
+                dot.onclick = () => {
+                    currentIndex = i;
+                    updateSlider();
+                };
+                dotsDiv.appendChild(dot);
+                dots.push(dot);
+            });
+            sliderContainer.appendChild(dotsDiv);
+            
+            wrapper.appendChild(sliderContainer);
+            
+            
+            // Liked by
+            const liked = document.createElement('div');
+            liked.className = 'instagram-liked';
+            liked.innerHTML = `♥︎ <strong>${Math.floor(Math.random() * 200) + 50} likes</strong>`;
+            wrapper.appendChild(liked);
+            
+            // Caption
+            const caption = document.createElement('div');
+            caption.className = 'instagram-caption';
+            caption.innerHTML = `<span class="instagram-caption-username">barga</span>salt in the air, your hand in mine`;
+            wrapper.appendChild(caption);
+            
+            // Comments
+            const comments = document.createElement('div');
+            comments.className = 'instagram-comments';
+            comments.innerHTML = `View all ${Math.floor(Math.random() * 20) + 5} comments`;
+            wrapper.appendChild(comments);
+            
+            // Timestamp
+            const timestamp = document.createElement('div');
+            timestamp.className = 'instagram-timestamp';
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            timestamp.innerHTML = `${formattedDate}`;
+            wrapper.appendChild(timestamp);
+            
+            function updateSlider() {
+                slidesDiv.style.transform = `translateX(-${currentIndex * 100}%)`;
+                dots.forEach((dot, i) => {
+                    if (i === currentIndex) dot.classList.add('active');
+                    else dot.classList.remove('active');
+                });
+                prevBtn.style.display = currentIndex === 0 ? 'none' : 'flex';
+                nextBtn.style.display = currentIndex === images.length - 1 ? 'none' : 'flex';
+            }
+            
+            updateSlider();
+            
+            // Touch swipe support
+            let touchStartX = 0;
+            slidesDiv.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+            });
+            slidesDiv.addEventListener('touchend', (e) => {
+                const diff = e.changedTouches[0].clientX - touchStartX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0 && currentIndex > 0) {
+                        currentIndex--;
+                        updateSlider();
+                    } else if (diff < 0 && currentIndex < images.length - 1) {
+                        currentIndex++;
+                        updateSlider();
+                    }
+                }
+            });
+            
+            return wrapper;
+        }
+        
+        function createMusicPlayer(data) {
+            let currentSongIndex = 0, audio = null, isPlaying = false;
+            const wrapper = document.createElement('div'); wrapper.className = 'night-drive-player';
+            const artworkDiv = document.createElement('div'); artworkDiv.className = 'player-artwork';
+            artworkDiv.innerHTML = `<img src="${data.songs[0].cover}" id="albumArtwork"><div class="player-artwork-overlay"><h4>${data.songTitle}</h4><p>${data.artist}</p></div>`;
+            wrapper.appendChild(artworkDiv);
+            const playlistDiv = document.createElement('div'); playlistDiv.className = 'playlist-section';
+            playlistDiv.innerHTML = `<div class="playlist-header"><span>୭ ˚. ᵎᵎ</span><span>${data.songs.length} song</span></div><div class="playlist-songs" id="playlistSongs"></div>`;
+            wrapper.appendChild(playlistDiv);
+            const songsContainer = playlistDiv.querySelector('#playlistSongs');
+            function updateActiveSongInList() { songsContainer.querySelectorAll('.playlist-song-item').forEach((item, idx) => idx === currentSongIndex ? item.classList.add('active') : item.classList.remove('active')); }
+            function updateArtwork(idx) { const img = wrapper.querySelector('#albumArtwork'); img.src = data.songs[idx].cover || data.artwork; }
+            function loadSong(idx) { if(audio) { audio.pause(); audio = null; } const song = data.songs[idx]; currentSongIndex = idx; updateArtwork(idx); audio = new Audio(song.url); audio.addEventListener('ended', () => { if(currentSongIndex < data.songs.length - 1) loadSong(currentSongIndex + 1); else loadSong(0); }); updateActiveSongInList(); if(isPlaying) audio.play().catch(e => console.log("Auto-play perlu interaksi user")); }
+            data.songs.forEach((song, idx) => {
+                const item = document.createElement('div'); item.className = `playlist-song-item ${idx === 0 ? 'active' : ''}`;
+                item.innerHTML = `<div class="song-info"><div class="song-title">${song.title}</div><div class="song-artist">${song.artist}</div></div><div class="song-duration">${song.duration}</div>`;
+                item.onclick = () => { loadSong(idx); if(!isPlaying) { isPlaying = true; audio.play().catch(e => console.log("Playback error")); } };
+                songsContainer.appendChild(item);
+            });
+            return wrapper;
+        }
+
+        // EXACT NOTEPAD STYLE from image
+        function createLetterWithTyping(data) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'notepad-exact';
+            
+            const fullText = data.letterContent;
+            const dateValue = data.letterDate || "May 15, 2026";
+            
+            wrapper.innerHTML = `
+                <div style="margin-bottom: 16px; border-bottom: 1px solid #e0d5b9; padding-bottom: 12px;">
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.8rem; color: #8b7a66; letter-spacing: 0.5px;">Date | ${dateValue}</div>
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.8rem; color: #8b7a66; letter-spacing: 0.5px; margin-top: 8px;">Message | For you</div>
+                </div>
+                <div class="notepad-line" id="typingContent"></div>
+            `;
+            
+            const contentDiv = wrapper.querySelector('#typingContent');
+            let idx = 0;
+            
+            const interval = setInterval(() => {
+                if (idx < fullText.length) {
+                    const char = fullText[idx];
+                    if (char === '\n') {
+                        contentDiv.innerHTML += '<br>';
+                    } else {
+                        contentDiv.innerHTML += char;
+                    }
+                    idx++;
+                    contentDiv.scrollTop = contentDiv.scrollHeight;
+                } else {
+                    clearInterval(interval);
+                    contentDiv.classList.add('typing-complete');
+                    const cursor = document.createElement('span');
+                    cursor.className = 'cursor-blink';
+                    cursor.style.cssText = 'display: inline-block; width: 2px; height: 1.2em; background-color: #8b7a66; margin-left: 2px; animation: blink 1s infinite; vertical-align: middle;';
+                    contentDiv.appendChild(cursor);
+                    setTimeout(() => {
+                        if(cursor.parentNode) cursor.remove();
+                    }, 1500);
+                }
+            }, 45);
+            
+            wrapper.typingInterval = interval;
+            return wrapper;
+        }
+
+        function createBlogPost(data) {
+            const wrapper = document.createElement('div'); wrapper.className = 'blog-container';
+            const previewImg = document.createElement('div'); previewImg.className = 'preview-image'; previewImg.style.backgroundImage = `url('${data.previewImage}')`; wrapper.appendChild(previewImg);
+            const branding = document.createElement('div'); branding.className = 'branding'; branding.innerHTML = `<div class="publication-label">${data.publication}</div><div class="main-title">${data.mainTitle}</div><div class="subtitle">${data.subtitle}</div>`; wrapper.appendChild(branding);
+            const postContent = document.createElement('div'); postContent.className = 'post-content';
+            postContent.innerHTML = `<div class="post-header"><div class="author-info"><div class="avatar" style="background-image: url('${data.author.avatar}')"></div><div class="author-name">${data.author.name}</div></div><div class="post-date">${data.postDate}</div></div><div class="post-body"><div class="post-text"><div class="post-title">${data.postTitle}</div><div class="post-description">${data.postDesc}</div></div><div class="post-image" style="background-image: url('${data.photos[0]}')"></div></div>`;
+            wrapper.appendChild(postContent);
+            return wrapper;
+        }
+
+        function createProfileCard(data) {
+            const wrapper = document.createElement('div'); wrapper.className = 'aesthetic-profile';
+            wrapper.innerHTML = `<div class="profile-header"><div class="username">${data.username}</div><div class="home-icon">⌂</div></div><div class="profile-gallery-row">${data.galleryImages.map(img => `<div class="profile-gallery-thumb" style="background-image: url('${img}');"></div>`).join('')}</div><div class="caption-note">${data.captionText}</div><div class="profile-pill-tags">${data.tags.map(tag => `<div class="profile-pill-tag">${tag}</div>`).join('')}</div><div class="profile-stats-bar"><div class="notes-count">${data.notesCount}</div><div class="profile-action-icons"><span>💬</span> <span>🔄</span> <span>❤️</span></div></div><div class="carrd-credit">${data.carrdCredit}</div>`;
+            return wrapper;
+        }
+
+        // MODIFIED CHAT INTERACTIVE with photo behind clock, line under username, line on top
+        function createChatInteractive(data) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'chat-container';
+            
+            let currentPage = 'notification';
+            
+            const getDate = () => {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const now = new Date();
+                return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+            };
+            
+            const getTime = () => {
+                const now = new Date();
+                return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            };
+            
+            const renderNotification = () => {
+    return `
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <div class="chat-avatar" style="background-image: url('${data.avatar || 'images/avatar.jpg'}')"></div>
+                <div class="chat-site-name username-with-line">Barga</div>
+            </div>
+            <div class="chat-header-right"></div>
+        </div>
+        <div class="top-line"></div>
+
+        <div class="notification-area">
+            <div class="datetime-with-bg">
+                <div class="date-large">${getDate()}</div>
+                <div class="time-large">${getTime()}</div>
+
+                <div class="inside-notif-content">
+                    <div class="notification-text">@${data.username} wants to send you a message!</div>
+                    <div class="notification-buttons">
+                        <button class="notif-btn accept" id="acceptBtn">Accept</button>
+                        <button class="notif-btn reject" id="rejectBtn">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer">
+            <span class="return-home" id="returnHomeBtn">return home</span>
+            <span class="footer-credit">୭ ˚. ᵎᵎ</span>
+        </div>
+    `;
+};
+            
+            const renderChat = () => {
+                return `
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <div class="chat-avatar" style="background-image: url('${data.avatar || 'images/avatar.jpg'}')"></div>
+                            <div class="chat-site-name username-with-line">Barga</div>
+                        </div>
+                        <div class="chat-header-right"></div>
+                    </div>
+                    <div class="top-line"></div>
+                    <div class="chat-messages-area" id="chatMessagesArea">
+                        <div class="system-message">you accepted @${data.username}'s request.</div>
+                        <div class="message-row left">
+                            <div class="chat-avatar-small" style="background-image: url('${data.avatar || 'images/avatar.jpg'}')"></div>
+                            <div class="message-bubble">i still remember how obvious i was when i started liking you.</div>
+                        </div>
+                        <div class="message-row right">
+                            <div class="message-bubble">i noticed… i just didn’t expect to like you back this much.</div>
+                        </div>
+                        <div class="message-row left">
+                            <div class="chat-avatar-small" style="background-image: url('${data.avatar || 'images/avatar.jpg'}')"></div>
+                            <div class="message-bubble">loving you is the easiest thing i've ever done because it feels like it's what i was meant to do all along.</div>
+                        </div>
+                        <div class="message-row left">
+                            <div class="chat-avatar-small" style="background-image: url('${data.avatar || 'images/avatar.jpg'}')"></div>
+                            <div class="message-bubble">and now you’re literally my favorite part of every day</div>
+                        </div>
+                        
+                    </div>
+                    <div class="chat-footer">
+                        <span class="return-home" id="returnHomeBtn">return home</span>
+                        <span class="footer-credit">୭ ˚. ᵎᵎ</span>
+                    </div>
+                `;
+            };
+            
+            function refreshContent() {
+                wrapper.innerHTML = currentPage === 'notification' ? renderNotification() : renderChat();
+                if (currentPage === 'notification') {
+                    const acceptBtn = wrapper.querySelector('#acceptBtn');
+                    const rejectBtn = wrapper.querySelector('#rejectBtn');
+                    const returnHome = wrapper.querySelector('#returnHomeBtn');
+                    if (acceptBtn) acceptBtn.onclick = () => { currentPage = 'chat'; refreshContent(); };
+                    if (rejectBtn) rejectBtn.onclick = () => { /* do nothing, just reject */ };
+                    if (returnHome) returnHome.onclick = () => { /* stay */ };
+                } else {
+                    const returnHome = wrapper.querySelector('#returnHomeBtn');
+                    if (returnHome) returnHome.onclick = () => { currentPage = 'notification'; refreshContent(); };
+                }
+            }
+            
+            refreshContent();
+            return wrapper;
+        }
+
+        function openModal(index) {
+            const data = cardsData[index];
+            const modal = document.getElementById('detailModal');
+            const modalDynamicContent = document.getElementById('modalDynamicContent');
+            const modalCard = modal.querySelector('.modal-card');
+            modalCard.classList.remove('gallery-mode');
+            
+            if (window.currentTypingInterval) { clearInterval(window.currentTypingInterval); window.currentTypingInterval = null; }
+            modalDynamicContent.innerHTML = '';
+            
+            if (data.type === "gallery") {
+                modalCard.classList.add('gallery-mode');
+                modalDynamicContent.appendChild(createInstagramGallery(data.images));
+            }
+            else if (data.type === "music_player") modalDynamicContent.appendChild(createMusicPlayer(data));
+            else if (data.type === "letter") { const letter = createLetterWithTyping(data); modalDynamicContent.appendChild(letter); if (letter.typingInterval) window.currentTypingInterval = letter.typingInterval; }
+            else if (data.type === "blog_post") modalDynamicContent.appendChild(createBlogPost(data));
+            else if (data.type === "profile_card") modalDynamicContent.appendChild(createProfileCard(data));
+            else if (data.type === "chat_interactive") modalDynamicContent.appendChild(createChatInteractive(data));
+            else { const img = document.createElement('img'); img.className = 'modal-img'; img.src = data.modalImg || data.hiddenImg; img.style.width = '100%'; img.style.borderRadius = '16px'; const msg = document.createElement('p'); msg.innerText = data.modalMessage || "💕"; modalDynamicContent.appendChild(img); modalDynamicContent.appendChild(msg); }
+            modal.classList.add('show');
+        }
+        
+        function closeModal() { const modal = document.getElementById('detailModal'); modal.classList.remove('show'); if (window.currentTypingInterval) { clearInterval(window.currentTypingInterval); window.currentTypingInterval = null; } }
+
+        function buildCards() {
+            const grid = document.getElementById('cardsGrid'); grid.innerHTML = ''; cards = []; revealedCount = 0;
+            for(let i = 0; i < totalCards; i++) {
+                const data = cardsData[i];
+                const cardDiv = document.createElement('div'); cardDiv.className = 'scratch-card';
+                const inner = document.createElement('div'); inner.className = 'card-inner';
+                const baseLayer = document.createElement('div'); baseLayer.className = 'base-layer';
+                baseLayer.style.background = `url('${data.hiddenImg}')`; baseLayer.style.backgroundSize = "cover"; baseLayer.style.backgroundPosition = "center";
+                inner.appendChild(baseLayer);
+                const canvas = document.createElement('canvas'); canvas.className = 'scratch-canvas';
+                inner.appendChild(canvas); cardDiv.appendChild(inner); grid.appendChild(cardDiv);
+                const cardObj = { cardDiv, canvas, ctx: canvas.getContext('2d'), revealed: false, brushSize: 30, drawing: false, lastCoord: null, index: i };
+                cards.push(cardObj);
+                setTimeout(() => { if(cardObj.canvas && !cardObj.revealed) initScratchCard(cardObj); }, 50);
+                baseLayer.addEventListener('click', (e) => { e.stopPropagation(); if(cardObj.revealed) openModal(i); });
+            }
+            updateProgress();
+        }
+        
+        function resetAllCards() {
+            cards.forEach(card => {
+                if(card.revealed) { card.canvas.style.display = 'block'; card.revealed = false; setTimeout(() => { if(card.canvas && !card.revealed) initScratchCard(card); }, 50); }
+                else { setTimeout(() => { if(card.canvas && !card.revealed) initScratchCard(card); }, 50); }
+            });
+            revealedCount = 0; updateProgress();
+        }
+        
+        function initMusic() { bgMusic = new Audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"); bgMusic.loop = true; bgMusic.volume = 0.2; }
+        function toggleMusic() { if(!bgMusic) initMusic(); if(musicPlaying) { bgMusic.pause(); musicPlaying = false; document.getElementById('toggleMusicBtn').innerHTML = "🎵 Putar Musik"; } else { bgMusic.play().catch(e => console.log("Klik lagi untuk memutar musik")); musicPlaying = true; document.getElementById('toggleMusicBtn').innerHTML = "🔇 Hentikan Musik"; } }
+        
+        document.getElementById('resetAllBtn').addEventListener('click', resetAllCards);
+        document.getElementById('toggleMusicBtn').addEventListener('click', toggleMusic);
+        
+        const closeBtn = document.querySelector('.modal-close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        
+        document.getElementById('detailModal').addEventListener('click', (e) => { if(e.target === document.getElementById('detailModal')) closeModal(); });
+        
+        buildCards();
+        
+        let resizeTimeout;
+        window.addEventListener('resize', () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(() => { cards.forEach(card => { if(!card.revealed && card.canvas) initScratchCard(card); }); }, 250); });
+    })();
+</script>
+</body>
+</html>
